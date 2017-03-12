@@ -1,123 +1,49 @@
 import sys
-sys.path.append('/usr/local/python/3.5')
+sys.path.append('/usr/local/python/3.5')  # whichever folder that contains **cv2.so** when you built OpenCV
 
-# Standard imports
+
 import os
 import cv2
 from cv2 import aruco
 import numpy as np
-from os import listdir
-from os.path import isfile, join
-#import yaml
-import unittest
 
 
-#############################Read Dictionary#######################################################
-# aruco_dict = aruco.Dictionary_get( aruco.DICT_4X4_1000 )
-# img = aruco.drawMarker(aruco_dict, 2, 1024)
-# cv2.imwrite("DICT_4X4_1000.jpg", img)
-# aruco_dict = aruco.Dictionary_get( aruco.DICT_5X5_1000 )
-# img = aruco.drawMarker(aruco_dict, 2, 1024)
-# cv2.imwrite("DICT_5X5_1000.jpg", img)
+calibrationFile = "calibrationFileName.xml"
+calibrationParams = cv2.FileStorage(calibrationFile, cv2.FILE_STORAGE_READ)
+camera_matrix = calibrationParams.getNode("cameraMatrix").mat()
+dist_coeffs = calibrationParams.getNode("distCoeffs").mat()
+
+
+r = calibrationParams.getNode("R").mat()
+new_camera_matrix = calibrationParams.getNode("newCameraMatrix").mat()
+
+
+image_size = (1920, 1080)
+map1, map2 = cv2.fisheye.initUndistortRectifyMap(camera_matrix, dist_coeffs, r, new_camera_matrix, image_size, cv2.CV_16SC2)
+
+
 aruco_dict = aruco.Dictionary_get( aruco.DICT_6X6_1000 )
-# img = aruco.drawMarker(aruco_dict, 2, 1024)
-# cv2.imwrite("DICT_6X6_1000.jpg", img)
-###################################################################################################
-
-
-#############################Read Stereo Calibrated Parameters#####################################
-# Load Calibrated Parameters
-stereoCalibrationFile = "/media/peijia/cinetec/Databases/cinetech/calibration/stereo_pointgrey_feb24_2.xml"
-stereoCalibrationParams = cv2.FileStorage(stereoCalibrationFile, cv2.FILE_STORAGE_READ)
-# image_width = stereoCalibrationParams.getNode("image_width")
-# image_height = stereoCalibrationParams.getNode("image_height")
-image_width = 1280
-image_height = 1024
-image_size = (image_width, image_height)
-camera_matrix_l = stereoCalibrationParams.getNode("camera_matrix_l").mat()
-distortion_coefficients_l = stereoCalibrationParams.getNode("distortion_coefficients_l").mat()
-camera_matrix_r = stereoCalibrationParams.getNode("camera_matrix_r").mat()
-distortion_coefficients_r = stereoCalibrationParams.getNode("distortion_coefficients_r").mat()
-r_matrix = stereoCalibrationParams.getNode("r_matrix").mat()    # rotation between stereo
-# t_matrix = stereoCalibrationParams.getNode("t_matrix").mat()    # translation between stereo
-r1_matrix = stereoCalibrationParams.getNode("r1_matrix").mat()
-r2_matrix = stereoCalibrationParams.getNode("r2_matrix").mat()
-new_rect_cam_matrix_l = stereoCalibrationParams.getNode("new_rect_cam_matrix_l").mat()
-new_rect_cam_matrix_r = stereoCalibrationParams.getNode("new_rect_cam_matrix_r").mat()
-mapx_l, mapy_l = cv2.fisheye.initUndistortRectifyMap(camera_matrix_l, distortion_coefficients_l, r1_matrix, new_rect_cam_matrix_l, image_size, cv2.CV_16SC2)
-mapx_r, mapy_r = cv2.fisheye.initUndistortRectifyMap(camera_matrix_r, distortion_coefficients_r, r2_matrix, new_rect_cam_matrix_r, image_size, cv2.CV_16SC2)
-###################################################################################################
-
-
-#####################################List All Image Pairs##########################################
-# List image names
-leftImgsDir = "/media/peijia/cinetec/Databases/cinetech/calibration/03_aruco"
-rightImgsDir = "/media/peijia/cinetec/Databases/cinetech/calibration/03_aruco"
-
-
-leftImgFileNames = [os.path.join(leftImgsDir, fn) for fn in next(os.walk(leftImgsDir))[2]]
-rightImgFileNames = [os.path.join(rightImgsDir, fn) for fn in next(os.walk(rightImgsDir))[2]]
-if (len(leftImgFileNames) != len(rightImgFileNames)):
-    print("The number of left images must be equal to the number of right images.")
-    exit()
-###################################################################################################
-
-
-########################################aruco Detector#############################################
-# Setup aruco parameters.
 arucoParams = aruco.DetectorParameters_create()
-###################################################################################################
+markerLength = 20 # Here, I'm using centimetre as a unit.
 
 
-############################For Loop, for All Captured Image Pairs#################################
-# http://docs.opencv.org/trunk/d9/d6d/tutorial_table_of_content_aruco.html
-# http://stackoverflow.com/questions/41656236/opencv-aruco-pose-estimation-example-code-from-tutorial
-nbOfImgs = len(leftImgFileNames)
+imgDir = "imgSequence"  # Specify the image directory
+imgFileNames = [os.path.join(imgDir, fn) for fn in next(os.walk(imgDir))[2]]
+nbOfImgs = len(imgFileNames)
+
+
 for i in range(0, nbOfImgs):
-# for i,frame in enumerate(camera.capture_continuous(rawCapture, format="bgr", use_video_port=True)):
-# i = 0
-    # Load images
-    imLeft = cv2.imread(leftImgFileNames[i], cv2.IMREAD_GRAYSCALE)
-    imRight = cv2.imread(rightImgFileNames[i], cv2.IMREAD_GRAYSCALE)
-
-    # Calibration
-    imLeftRemapped = cv2.remap(imLeft, mapx_l, mapy_l, cv2.INTER_LINEAR, cv2.BORDER_CONSTANT)
-    imRightRemapped = cv2.remap(imRight, mapx_r, mapy_r, cv2.INTER_LINEAR, cv2.BORDER_CONSTANT)
-    imLeftRemapped_color = cv2.cvtColor(imLeftRemapped, cv2.COLOR_GRAY2BGR)
-    imRightRemapped_color = cv2.cvtColor(imRightRemapped, cv2.COLOR_GRAY2BGR)
-
-    # Detect aruco
-    cornersLeft, idsLeft, rejectedImgPointsLeft = aruco.detectMarkers(imLeftRemapped, aruco_dict, parameters=arucoParams)
-    cornersRight, idsRight, rejectedImgPointsRight = aruco.detectMarkers(imRightRemapped, aruco_dict, parameters=arucoParams)
-
-    # Estimate board pose
-    if idsLeft != None:
-        # For a single marker
-        rvecLeft, tvecLeft = aruco.estimatePoseSingleMarkers(cornersLeft, 20, camera_matrix_l, distortion_coefficients_l)
-        # For multiple markers
-        # retvalLeft, rvecLeft, tvecLeft = aruco.estimatePoseBoard(cornersLeft, idsLeft, board, camera_matrix_l, distortion_coefficients_l)
-        im_with_aruco_left = aruco.drawDetectedMarkers(imLeftRemapped_color, cornersLeft, None, (0,255,0))
-        im_with_aruco_left = aruco.drawAxis(im_with_aruco_left, camera_matrix_l, distortion_coefficients_l, rvecLeft, tvecLeft, 100)
-    else:
-        im_with_aruco_left = imLeftRemapped_color
-
-    if idsRight != None:
-        # For a single marker
-        rvecRight, tvecRight = aruco.estimatePoseSingleMarkers(cornersRight, 20, camera_matrix_r, distortion_coefficients_r)
-        # For multiple markers
-        # retvalRight, rvecRight, tvecRight = aruco.estimatePoseBoard(cornersRight, idsRight, board, camera_matrix_r, distortion_coefficients_r)
-        im_with_aruco_right = aruco.drawDetectedMarkers(imRightRemapped_color, cornersRight, None, (0,255,0))
-        im_with_aruco_right = aruco.drawAxis(im_with_aruco_right, camera_matrix_r, distortion_coefficients_r, rvecRight, tvecRight, 100)
-    else:
-        im_with_aruco_right = imRightRemapped_color
-
-    # Save/show circule grid
-    # cv2.imwrite("arucoLeft.jpg", im_with_aruco_left)
-    # cv2.imwrite("arucoRight.jpg", im_with_aruco_right)
-    cv2.imshow("arucoLeft", im_with_aruco_left)
-    cv2.imshow("arucoRight", im_with_aruco_right)
-
-    if cv2.waitKey(2) & 0xFF == ord('q'):
+    img = cv2.imread(imgFileNames[i], cv2.IMREAD_GRAYSCALE)
+    imgRemapped = cv2.remap(img, map1, map2, cv2.INTER_LINEAR, cv2.BORDER_CONSTANT) # for fisheye remapping
+    imRemapped_color = cv2.cvtColor(imgRemapped, cv2.COLOR_GRAY2BGR)  # for later display in color
+    corners, ids, rejectedImgPoints = aruco.detectMarkers(imgRemapped, aruco_dict, parameters=arucoParams) # Detect aruco
+    if ids != None: # if aruco marker detected
+        rvec, tvec = aruco.estimatePoseSingleMarkers(corners, markerLength, camera_matrix, dist_coeffs) # For a single marker
+        imgWithAruco = aruco.drawDetectedMarkers(imRemapped_color, corners, ids, (0,255,0))
+        imgWithAruco = aruco.drawAxis(imgWithAruco, camera_matrix, dist_coeffs, rvec, tvec, 100)  # axis length 100 can be changed according to your requirement
+    else: # if aruco marker is NOT detected
+        imgWithAruco = imRemapped_color # assign imRemapped_color to imgWithAruco directly
+        cv2.imshow("aruco", imgWithAruco) # display
+    if cv2.waitKey(2) & 0xFF == ord('q'): # if 'q' is pressed, quit.
         break
-
 
