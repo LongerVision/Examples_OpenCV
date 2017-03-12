@@ -28,7 +28,7 @@ markerLength = 25   # Here, our measurement unit is centimetre.
 
 
 
-videoFile = "/media/peijia/cinetec/Databases/cinetech/calibration/videos/aruco_diamond.mp4"
+videoFile = "aruco_diamond.mp4"
 cap = cv2.VideoCapture(videoFile)
 
 while(True):
@@ -37,15 +37,14 @@ while(True):
         frame_remapped = cv2.remap(frame, map1, map2, cv2.INTER_LINEAR, cv2.BORDER_CONSTANT)     # for fisheye remapping
         frame_remapped_gray = cv2.cvtColor(frame_remapped, cv2.COLOR_BGR2GRAY)
 
-        # Detect markers
-        corners, ids, rejectedImgPoints = aruco.detectMarkers(frame_remapped_gray, aruco_dict, parameters=arucoParams)
+        
+        corners, ids, rejectedImgPoints = aruco.detectMarkers(frame_remapped_gray, aruco_dict, parameters=arucoParams)  # First, detect markers
 
-        # Estimate diamond pose
-        if ids != None:
-            diamondCorners, diamondIds = aruco.detectCharucoDiamond(frame_remapped_gray, corners, ids, squareLength/markerLength)
-            if len(diamondCorners) >= 1:
+        if ids != None: # if there is at least one marker detected
+            diamondCorners, diamondIds = aruco.detectCharucoDiamond(frame_remapped_gray, corners, ids, squareLength/markerLength)   # Second, detect diamond markers
+            if len(diamondCorners) >= 1:    # if there is at least one diamond detected
                 im_with_diamond = aruco.drawDetectedDiamonds(frame_remapped, diamondCorners, diamondIds, (0,255,0))
-                rvec, tvec = aruco.estimatePoseSingleMarkers(diamondCorners, squareLength, camera_matrix, dist_coeffs)
+                rvec, tvec = aruco.estimatePoseSingleMarkers(diamondCorners, squareLength, camera_matrix, dist_coeffs)  # posture estimation from a diamond
                 im_with_diamond = aruco.drawAxis(im_with_diamond, camera_matrix, dist_coeffs, rvec, tvec, 1)
         else:
             im_with_diamond = frame_remapped
