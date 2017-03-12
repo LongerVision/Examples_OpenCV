@@ -45,7 +45,7 @@ while(True):
             if len(diamondCorners) >= 1:    # if there is at least one diamond detected
                 im_with_diamond = aruco.drawDetectedDiamonds(frame_remapped, diamondCorners, diamondIds, (0,255,0))
                 rvec, tvec = aruco.estimatePoseSingleMarkers(diamondCorners, squareLength, camera_matrix, dist_coeffs)  # posture estimation from a diamond
-                im_with_diamond = aruco.drawAxis(im_with_diamond, camera_matrix, dist_coeffs, rvec, tvec, 1)
+                im_with_diamond = aruco.drawAxis(im_with_diamond, camera_matrix, dist_coeffs, rvec, tvec, 100)    # axis length 100 can be changed according to your requirement
         else:
             im_with_diamond = frame_remapped
 
