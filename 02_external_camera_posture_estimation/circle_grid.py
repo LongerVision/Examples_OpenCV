@@ -22,34 +22,7 @@ map1, map2 = cv2.fisheye.initUndistortRectifyMap(camera_matrix, dist_coeffs, r, 
 
 
 
-########################################Blob Detector##############################################
-# Setup SimpleBlobDetector parameters.
-blobParams = cv2.SimpleBlobDetector_Params()
-
-# Change thresholds
-blobParams.minThreshold = 8
-blobParams.maxThreshold = 255
-
-# Filter by Area.
-blobParams.filterByArea = True
-blobParams.minArea = 64     # minArea may be adjusted to suit for your experiment
-blobParams.maxArea = 2500   # maxArea may be adjusted to suit for your experiment
-
-# Filter by Circularity
-blobParams.filterByCircularity = True
-blobParams.minCircularity = 0.1
-
-# Filter by Convexity
-blobParams.filterByConvexity = True
-blobParams.minConvexity = 0.87
-
-# Filter by Inertia
-blobParams.filterByInertia = True
-blobParams.minInertiaRatio = 0.01
-
-# Create a detector with the parameters
-blobDetector = cv2.SimpleBlobDetector_create(blobParams)
-
+###################################################################################################
 # Original blob coordinates
 objectPoints = np.zeros((44, 3))
 objectPoints[0]  = (0  , 0  , 0)
@@ -101,11 +74,43 @@ axis = np.float32([[360,0,0], [0,240,0], [0,0,-120]]).reshape(-1,3)
 
 
 
+########################################Blob Detector##############################################
+# Setup SimpleBlobDetector parameters.
+blobParams = cv2.SimpleBlobDetector_Params()
+
+# Change thresholds
+blobParams.minThreshold = 8
+blobParams.maxThreshold = 255
+
+# Filter by Area.
+blobParams.filterByArea = True
+blobParams.minArea = 64     # minArea may be adjusted to suit for your experiment
+blobParams.maxArea = 2500   # maxArea may be adjusted to suit for your experiment
+
+# Filter by Circularity
+blobParams.filterByCircularity = True
+blobParams.minCircularity = 0.1
+
+# Filter by Convexity
+blobParams.filterByConvexity = True
+blobParams.minConvexity = 0.87
+
+# Filter by Inertia
+blobParams.filterByInertia = True
+blobParams.minInertiaRatio = 0.01
+
+# Create a detector with the parameters
+blobDetector = cv2.SimpleBlobDetector_create(blobParams)
+
+# Create the iteration criteria
+criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
+###################################################################################################
+
+
+
 imgDir = "imgSequence"  # Specify the image directory
 imgFileNames = [os.path.join(imgDir, fn) for fn in next(os.walk(imgDir))[2]]
 nbOfImgs = len(imgFileNames)
-
-criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
 
 for i in range(0, nbOfImgs-1):
     img = cv2.imread(imgFileNames[i], cv2.IMREAD_COLOR)
