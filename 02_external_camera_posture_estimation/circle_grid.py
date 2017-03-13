@@ -23,7 +23,8 @@ map1, map2 = cv2.fisheye.initUndistortRectifyMap(camera_matrix, dist_coeffs, r, 
 
 
 ###################################################################################################
-# Original blob coordinates
+# Original blob coordinates, supposing all blobs are of z-coordinates 0
+# And, the distance between every two neighbour blob circle centers is 72 centimetres
 objectPoints = np.zeros((44, 3))
 objectPoints[0]  = (0  , 0  , 0)
 objectPoints[1]  = (0  , 72 , 0)
@@ -69,6 +70,8 @@ objectPoints[40] = (360, 0  , 0)
 objectPoints[41] = (360, 72 , 0)
 objectPoints[42] = (360, 144, 0)
 objectPoints[43] = (360, 216, 0)
+
+# In order to tell X-Y-Z coordinates, they are assigned to different length.
 axis = np.float32([[360,0,0], [0,240,0], [0,0,-120]]).reshape(-1,3)
 ###################################################################################################
 
@@ -119,7 +122,7 @@ for i in range(0, nbOfImgs-1):
 
     keypoints = blobDetector.detect(imgRemapped_gray) # Detect blobs.
 
-    # Draw detected blobs as red circles.
+    # Draw detected blobs as red circles. This helps cv2.findCirclesGrid() . 
     im_with_keypoints = cv2.drawKeypoints(imgRemapped, keypoints, np.array([]), (0,255,0), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
     im_with_keypoints_gray = cv2.cvtColor(im_with_keypoints, cv2.COLOR_BGR2GRAY)
     ret, corners = cv2.findCirclesGrid(im_with_keypoints, (4,11), None, flags = cv2.CALIB_CB_ASYMMETRIC_GRID)   # Find the circle grid
@@ -127,7 +130,7 @@ for i in range(0, nbOfImgs-1):
     if ret == True:
         corners2 = cv2.cornerSubPix(im_with_keypoints_gray, corners, (11,11), (-1,-1), criteria)    # Refines the corner locations.
 
-        # Draw and display the corners
+        # Draw and display the corners.
         im_with_keypoints = cv2.drawChessboardCorners(imLeftRemapped, (4,11), corners2, ret)
 
         # 3D posture
