@@ -48,7 +48,7 @@ while(True):
         else:
             im_with_diamond = frame_remapped
 
-        cv2.imshow("diamondLeft", im_with_diamond)   # display
+        cv2.imshow("diamond", im_with_diamond)   # display
 
         if cv2.waitKey(2) & 0xFF == ord('q'):   # press 'q' to quit
             break
