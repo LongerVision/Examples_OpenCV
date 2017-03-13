@@ -22,8 +22,8 @@ map1, map2 = cv2.fisheye.initUndistortRectifyMap(camera_matrix, dist_coeffs, r, 
 
 
 aruco_dict = aruco.Dictionary_get( aruco.DICT_6X6_1000 )
-arucoParams = aruco.DetectorParameters_create()
 markerLength = 20   # Here, our measurement unit is centimetre.
+arucoParams = aruco.DetectorParameters_create()
 
 
 
