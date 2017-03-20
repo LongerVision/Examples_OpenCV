@@ -60,7 +60,7 @@ while(found < 10):  # Here, 10 can be changed to whatever number you like to cho
 
     # If found, add object points, image points (after refining them)
     if ret == True:
-        objpoints.append(objp)
+        objpoints.append(objp)  # Certainly, every loop objp is the same, in 3D.
 
         corners2 = cv2.cornerSubPix(gray,corners,(11,11),(-1,-1),criteria)
         imgpoints.append(corners2)
