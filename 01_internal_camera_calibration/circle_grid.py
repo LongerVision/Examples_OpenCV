@@ -34,79 +34,9 @@
 ################################################################################
 
 # Standard imports
-import os
-import cv2
 import numpy as np
-
-
-
-# Load Calibrated Parameters
-calibrationFile = "calibrationFileName.xml"
-calibrationParams = cv2.FileStorage(calibrationFile, cv2.FILE_STORAGE_READ)
-camera_matrix = calibrationParams.getNode("cameraMatrix").mat()
-dist_coeffs = calibrationParams.getNode("distCoeffs").mat()
-
-r = calibrationParams.getNode("R").mat()
-new_camera_matrix = calibrationParams.getNode("newCameraMatrix").mat()
-
-image_size = (1920, 1080)
-map1, map2 = cv2.fisheye.initUndistortRectifyMap(camera_matrix, dist_coeffs, r, new_camera_matrix, image_size, cv2.CV_16SC2)
-
-
-
-###################################################################################################
-# Original blob coordinates, supposing all blobs are of z-coordinates 0
-# And, the distance between every two neighbour blob circle centers is 72 centimetres
-objectPoints = np.zeros((44, 3))
-objectPoints[0]  = (0  , 0  , 0)
-objectPoints[1]  = (0  , 72 , 0)
-objectPoints[2]  = (0  , 144, 0)
-objectPoints[3]  = (0  , 216, 0)
-objectPoints[4]  = (36 , 36 , 0)
-objectPoints[5]  = (36 , 108, 0)
-objectPoints[6]  = (36 , 180, 0)
-objectPoints[7]  = (36 , 252, 0)
-objectPoints[8]  = (72 , 0  , 0)
-objectPoints[9]  = (72 , 72 , 0)
-objectPoints[10] = (72 , 144, 0)
-objectPoints[11] = (72 , 216, 0)
-objectPoints[12] = (108, 36,  0)
-objectPoints[13] = (108, 108, 0)
-objectPoints[14] = (108, 180, 0)
-objectPoints[15] = (108, 252, 0)
-objectPoints[16] = (144, 0  , 0)
-objectPoints[17] = (144, 72 , 0)
-objectPoints[18] = (144, 144, 0)
-objectPoints[19] = (144, 216, 0)
-objectPoints[20] = (180, 36 , 0)
-objectPoints[21] = (180, 108, 0)
-objectPoints[22] = (180, 180, 0)
-objectPoints[23] = (180, 252, 0)
-objectPoints[24] = (216, 0  , 0)
-objectPoints[25] = (216, 72 , 0)
-objectPoints[26] = (216, 144, 0)
-objectPoints[27] = (216, 216, 0)
-objectPoints[28] = (252, 36 , 0)
-objectPoints[29] = (252, 108, 0)
-objectPoints[30] = (252, 180, 0)
-objectPoints[31] = (252, 252, 0)
-objectPoints[32] = (288, 0  , 0)
-objectPoints[33] = (288, 72 , 0)
-objectPoints[34] = (288, 144, 0)
-objectPoints[35] = (288, 216, 0)
-objectPoints[36] = (324, 36 , 0)
-objectPoints[37] = (324, 108, 0)
-objectPoints[38] = (324, 180, 0)
-objectPoints[39] = (324, 252, 0)
-objectPoints[40] = (360, 0  , 0)
-objectPoints[41] = (360, 72 , 0)
-objectPoints[42] = (360, 144, 0)
-objectPoints[43] = (360, 216, 0)
-
-# In order to tell X-Y-Z coordinates, they are assigned to different length.
-axis = np.float32([[360,0,0], [0,240,0], [0,0,-120]]).reshape(-1,3)
-###################################################################################################
-
+import cv2
+import yaml
 
 
 ########################################Blob Detector##############################################
@@ -142,44 +72,109 @@ criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
 ###################################################################################################
 
 
+###################################################################################################
+# Original blob coordinates, supposing all blobs are of z-coordinates 0
+# And, the distance between every two neighbour blob circle centers is 72 centimetres
+# In fact, any number can be used to replace 72.
+# Namely, the real size of the circle is pointless while calculating camera calibration parameters.
+objp = np.zeros((44, 3), np.float32)
+objp[0]  = (0  , 0  , 0)
+objp[1]  = (0  , 72 , 0)
+objp[2]  = (0  , 144, 0)
+objp[3]  = (0  , 216, 0)
+objp[4]  = (36 , 36 , 0)
+objp[5]  = (36 , 108, 0)
+objp[6]  = (36 , 180, 0)
+objp[7]  = (36 , 252, 0)
+objp[8]  = (72 , 0  , 0)
+objp[9]  = (72 , 72 , 0)
+objp[10] = (72 , 144, 0)
+objp[11] = (72 , 216, 0)
+objp[12] = (108, 36,  0)
+objp[13] = (108, 108, 0)
+objp[14] = (108, 180, 0)
+objp[15] = (108, 252, 0)
+objp[16] = (144, 0  , 0)
+objp[17] = (144, 72 , 0)
+objp[18] = (144, 144, 0)
+objp[19] = (144, 216, 0)
+objp[20] = (180, 36 , 0)
+objp[21] = (180, 108, 0)
+objp[22] = (180, 180, 0)
+objp[23] = (180, 252, 0)
+objp[24] = (216, 0  , 0)
+objp[25] = (216, 72 , 0)
+objp[26] = (216, 144, 0)
+objp[27] = (216, 216, 0)
+objp[28] = (252, 36 , 0)
+objp[29] = (252, 108, 0)
+objp[30] = (252, 180, 0)
+objp[31] = (252, 252, 0)
+objp[32] = (288, 0  , 0)
+objp[33] = (288, 72 , 0)
+objp[34] = (288, 144, 0)
+objp[35] = (288, 216, 0)
+objp[36] = (324, 36 , 0)
+objp[37] = (324, 108, 0)
+objp[38] = (324, 180, 0)
+objp[39] = (324, 252, 0)
+objp[40] = (360, 0  , 0)
+objp[41] = (360, 72 , 0)
+objp[42] = (360, 144, 0)
+objp[43] = (360, 216, 0)
+###################################################################################################
 
-imgDir = "imgSequence"  # Specify the image directory
-imgFileNames = [os.path.join(imgDir, fn) for fn in next(os.walk(imgDir))[2]]
-nbOfImgs = len(imgFileNames)
 
-for i in range(0, nbOfImgs-1):
-    img = cv2.imread(imgFileNames[i], cv2.IMREAD_COLOR)
-    imgRemapped = cv2.remap(img, map1, map2, cv2.INTER_LINEAR, cv2.BORDER_CONSTANT) # for fisheye remapping
-    imgRemapped_gray = cv2.cvtColor(imgRemapped, cv2.COLOR_BGR2GRAY)    # blobDetector.detect() requires gray image
+# Arrays to store object points and image points from all the images.
+objpoints = [] # 3d point in real world space
+imgpoints = [] # 2d points in image plane.
 
-    keypoints = blobDetector.detect(imgRemapped_gray) # Detect blobs.
+
+cap = cv2.VideoCapture(0)
+found = 0
+while(found < 10):  # Here, 10 can be changed to whatever number you like to choose
+    ret, img = cap.read() # Capture frame-by-frame
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+
+    keypoints = blobDetector.detect(gray) # Detect blobs.
 
     # Draw detected blobs as red circles. This helps cv2.findCirclesGrid() . 
-    im_with_keypoints = cv2.drawKeypoints(imgRemapped, keypoints, np.array([]), (0,255,0), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
+    im_with_keypoints = cv2.drawKeypoints(img, keypoints, np.array([]), (0,255,0), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
     im_with_keypoints_gray = cv2.cvtColor(im_with_keypoints, cv2.COLOR_BGR2GRAY)
     ret, corners = cv2.findCirclesGrid(im_with_keypoints, (4,11), None, flags = cv2.CALIB_CB_ASYMMETRIC_GRID)   # Find the circle grid
 
     if ret == True:
+        objpoints.append(objp)  # Certainly, every loop objp is the same, in 3D.
+
         corners2 = cv2.cornerSubPix(im_with_keypoints_gray, corners, (11,11), (-1,-1), criteria)    # Refines the corner locations.
+        imgpoints.append(corners2)
 
         # Draw and display the corners.
-        im_with_keypoints = cv2.drawChessboardCorners(imLeftRemapped, (4,11), corners2, ret)
+        im_with_keypoints = cv2.drawChessboardCorners(img, (4,11), corners2, ret)
+        found += 1
 
-        # 3D posture
-        if len(corners2) == len(objectPoints):
-            retval, rvec, tvec = cv2.solvePnP(objectPoints, corners2, camera_matrix, dist_coeffs)
-        
-        if retval:
-            projectedPoints, jac = cv2.projectPoints(objectPoints, rvec, tvec, camera_matrix, dist_coeffs)  # project 3D points to image plane
-            projectedAxis, jacAsix = cv2.projectPoints(axis, rvec, tvec, camera_matrix, dist_coeffs)    # project axis to image plane
-            for p in projectedPoints:
-                p = np.int32(p).reshape(-1,2)
-                cv2.circle(im_with_keypoints, (p[0][0], p[0][1]), 3, (0,0,255))
-            origin = tuple(corners2[0].ravel())
-            im_with_keypoints = cv2.line(im_with_keypoints, origin, tuple(projectedAxis[0].ravel()), (255,0,0), 2)
-            im_with_keypoints = cv2.line(im_with_keypoints, origin, tuple(projectedAxis[1].ravel()), (0,255,0), 2)
-            im_with_keypoints = cv2.line(im_with_keypoints, origin, tuple(projectedAxis[2].ravel()), (0,0,255), 2)
 
-    cv2.imshow("circlegrid", im_with_keypoints) # display
-
+    cv2.imshow("img", im_with_keypoints) # display
     cv2.waitKey(2)
+
+
+# When everything done, release the capture
+cap.release()
+cv2.destroyAllWindows()
+
+ret, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(objpoints, imgpoints, gray.shape[::-1], None, None)
+
+
+# It's very important to transform the matrix to list.
+data = {'camera_matrix': np.asarray(mtx).tolist(), 'dist_coeff': np.asarray(dist).tolist()}
+
+with open("calibration.yaml", "w") as f:
+    yaml.dump(data, f)
+
+
+# You can use the following 4 lines of code to load the data in file "calibration.yaml"
+# with open('calibration.yaml') as f:
+#     loadeddict = yaml.load(f)
+# mtxloaded = loadeddict.get('camera_matrix')
+# distloaded = loadeddict.get('dist_coeff')
+
