@@ -51,6 +51,7 @@ with open("calibration.yaml", "w") as f:
     yaml.dump(data, f)
 
 
+# You can use the following 4 lines of code to load the data in file "calibration.yaml"
 # with open('calibration.yaml') as f:
 #     loadeddict = yaml.load(f)
 # mtxloaded = loadeddict.get('camera_matrix')
