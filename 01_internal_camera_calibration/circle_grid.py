@@ -39,6 +39,9 @@ import cv2
 import yaml
 
 
+# termination criteria
+criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
+
 ########################################Blob Detector##############################################
 # Setup SimpleBlobDetector parameters.
 blobParams = cv2.SimpleBlobDetector_Params()
@@ -66,9 +69,6 @@ blobParams.minInertiaRatio = 0.01
 
 # Create a detector with the parameters
 blobDetector = cv2.SimpleBlobDetector_create(blobParams)
-
-# Create the iteration criteria
-criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
 ###################################################################################################
 
 
