@@ -1,0 +1,31 @@
+%YAML:1.0cameramatrix: !!python/object/apply:numpy.core.multiarray._reconstruct
+  args:
+  - &id001 !!python/name:numpy.ndarray ''
+  - !!python/tuple [0]
+  - !!binary |
+    Yg==
+  state: !!python/tuple
+  - 1
+  - !!python/tuple [3, 3]
+  - !!python/object/apply:numpy.dtype
+    args: [f8, 0, 1]
+    state: !!python/tuple [3, <, null, null, null, -1, -1, 0]
+  - false
+  - !!binary |
+    dYRvHO2cekAAAAAAAAAAAAtdgeCHsHNAAAAAAAAAAADfiQICie16QOCDvJlImHJAAAAAAAAAAAAA
+    AAAAAAAAAAAAAAAAAPA/
+distcoefficients: !!python/object/apply:numpy.core.multiarray._reconstruct
+  args:
+  - *id001
+  - !!python/tuple [0]
+  - !!binary |
+    Yg==
+  state: !!python/tuple
+  - 1
+  - !!python/tuple [1, 5]
+  - !!python/object/apply:numpy.dtype
+    args: [f8, 0, 1]
+    state: !!python/tuple [3, <, null, null, null, -1, -1, 0]
+  - false
+  - !!binary |
+    eiaPospxhj+IugbJsLu5P73lAAR840i/mEZOpNGzez9yRY94iOjLvw==
