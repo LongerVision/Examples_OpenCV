@@ -30,69 +30,80 @@
 # Author:           JIA Pei                                                    #
 # Contact:          jiapei@longervision.com                                    #
 # URL:              http://www.longervision.cn                                 #
-# Create Date:      2017-03-12                                                 #
+# Create Date:      2020-01-18                                                 #
 ################################################################################
 
-import sys
-sys.path.append('/usr/local/python/3.5')
-
-# Standard imports
-import os
-import cv2
-from cv2 import aruco
 import numpy as np
+import cv2
 
 
+# termination criteria
+criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
 
-# Load Calibrated Parameters
-calibrationFile = "calibrationFileName.xml"
-calibrationParams = cv2.FileStorage(calibrationFile, cv2.FILE_STORAGE_READ)
-camera_matrix = calibrationParams.getNode("cameraMatrix").mat()
-dist_coeffs = calibrationParams.getNode("distCoeffs").mat()
+# prepare object points, like (0,0,0), (1,0,0), (2,0,0) ....,(6,5,0)
+objp = np.zeros((6*7,3), np.float32)
+objp[:,:2] = np.mgrid[0:7,0:6].T.reshape(-1,2)
 
-r = calibrationParams.getNode("R").mat()
-new_camera_matrix = calibrationParams.getNode("newCameraMatrix").mat()
+# Arrays to store object points and image points from all the images.
+objpoints = [] # 3d point in real world space
+imgpoints = [] # 2d points in image plane.
 
-image_size = (1920, 1080)
-map1, map2 = cv2.fisheye.initUndistortRectifyMap(camera_matrix, dist_coeffs, r, new_camera_matrix, image_size, cv2.CV_16SC2)
+cap = cv2.VideoCapture(2)
+found = 0
+while(found < 10):  # Here, 10 can be changed to whatever number you like to choose
+    ret, img = cap.read() # Capture frame-by-frame
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
+    # Find the chess board corners
+    ret, corners = cv2.findChessboardCorners(gray, (7,6), None)
 
-
-aruco_dict = aruco.getPredefinedDictionary( aruco.DICT_6X6_1000 )
-markerLength = 40   # Here, our measurement unit is centimetre.
-markerSeparation = 8   # Here, our measurement unit is centimetre.
-board = aruco.GridBoard_create(5, 7, markerLength, markerSeparation, aruco_dict)
-arucoParams = aruco.DetectorParameters_create()
-
-
-
-videoFile = "aruco_board_57.mp4"
-cap = cv2.VideoCapture(videoFile)
-
-while(True):
-    ret, frame = cap.read() # Capture frame-by-frame
+    # If found, add object points, image points (after refining them)
     if ret == True:
-        frame_remapped = cv2.remap(frame, map1, map2, cv2.INTER_LINEAR, cv2.BORDER_CONSTANT)     # for fisheye remapping
-        frame_remapped_gray = cv2.cvtColor(frame_remapped, cv2.COLOR_BGR2GRAY)  # aruco.detectMarkers() requires gray image
+        objpoints.append(objp)  # Certainly, every loop objp is the same, in 3D.
 
-        corners, ids, rejectedImgPoints = aruco.detectMarkers(frame_remapped_gray, aruco_dict, parameters=arucoParams)  # First, detect markers
-        aruco.refineDetectedMarkers(frame_remapped_gray, board, corners, ids, rejectedImgPoints)
+        corners2 = cv2.cornerSubPix(gray,corners,(11,11),(-1,-1),criteria)
+        imgpoints.append(corners2)
 
-        if ids != None: # if there is at least one marker detected
-            im_with_aruco_board = aruco.drawDetectedMarkers(frame_remapped, corners, ids, (0,255,0))
-            retval, rvec, tvec = aruco.estimatePoseBoard(corners, ids, board, camera_matrix, dist_coeffs)  # posture estimation from a aruco board
-            if retval != 0:
-                im_with_aruco_board = aruco.drawAxis(im_with_aruco_board, camera_matrix, dist_coeffs, rvec, tvec, 100)  # axis length 100 can be changed according to your requirement
-        else:
-            im_with_aruco_board = frame_remapped
+        # Draw and display the corners
+        img = cv2.drawChessboardCorners(img, (7,6), corners2, ret)
 
-        cv2.imshow("arucoboard", im_with_aruco_board)
+        # Enable the following 2 lines if you want to save the calibration images.
+        filename = str(found) +".jpg"
+        cv2.imwrite(filename, img)
 
-        if cv2.waitKey(2) & 0xFF == ord('q'):
-            break
-    else:
-        break
+        found += 1
+
+    cv2.imshow('img', img)
+    cv2.waitKey(10)
 
 
-cap.release()   # When everything done, release the capture
+# When everything done, release the capture
+cap.release()
 cv2.destroyAllWindows()
+
+ret, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(objpoints, imgpoints, gray.shape[::-1], None, None)
+
+
+#  Python code to write the image (OpenCV 3.2)
+fs = cv2.FileStorage('calibration.yml', cv2.FILE_STORAGE_WRITE)
+fs.write('camera_matrix', mtx)
+fs.write('dist_coeff', dist)
+fs.release()
+
+
+
+# If you want to use PyYAML to read and write yaml files,
+# try the following part
+# It's very important to transform the matrix to list.
+# data = {'camera_matrix': np.asarray(mtx).tolist(), 'dist_coeff': np.asarray(dist).tolist()}
+
+# with open("calibration.yaml", "w") as f:
+#    yaml.dump(data, f)
+
+# You can use the following 4 lines of code to load the data in file "calibration.yaml"
+# Read YAML file
+#with open(calibrationFile, 'r') as stream:
+#    dictionary = yaml.safe_load(stream)
+#camera_matrix = dictionary.get("camera_matrix")
+#dist_coeffs = dictionary.get("dist_coeff")
+

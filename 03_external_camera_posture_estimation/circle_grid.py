@@ -31,10 +31,10 @@
 # Contact:          jiapei@longervision.com                                    #
 # URL:              http://www.longervision.cn                                 #
 # Create Date:      2017-03-15                                                 #
+# Modified Date:    2020-01-18                                                 #
 ################################################################################
 
 import sys
-sys.path.append('/usr/local/python/3.5')
 
 # Standard imports
 import os
@@ -44,14 +44,15 @@ import numpy as np
 
 
 # Load Calibrated Parameters
-calibrationFile = "calibrationFileName.xml"
-calibrationParams = cv2.FileStorage(calibrationFile, cv2.FILE_STORAGE_READ)
-camera_matrix = calibrationParams.getNode("cameraMatrix").mat()
-dist_coeffs = calibrationParams.getNode("distCoeffs").mat()
+fs = cv2.FileStorage("calibration.yml", cv2.FILE_STORAGE_READ)
+camera_matrix = fs.getNode("camera_matrix").mat()
+dist_coeffs = fs.getNode("dist_coeff").mat()
 
-r = calibrationParams.getNode("R").mat()
-new_camera_matrix = calibrationParams.getNode("newCameraMatrix").mat()
-
+r = fs.getNode("R").mat()
+new_camera_matrix = fs.getNode("newCameraMatrix").mat()
+fs.release()
+print(camera_matrix)
+print(dist_coeffs)
 image_size = (1920, 1080)
 map1, map2 = cv2.fisheye.initUndistortRectifyMap(camera_matrix, dist_coeffs, r, new_camera_matrix, image_size, cv2.CV_16SC2)
 
@@ -157,7 +158,7 @@ for i in range(0, nbOfImgs-1):
 
     keypoints = blobDetector.detect(imgRemapped_gray) # Detect blobs.
 
-    # Draw detected blobs as red circles. This helps cv2.findCirclesGrid() . 
+    # Draw detected blobs as red circles. This helps cv2.findCirclesGrid() .
     im_with_keypoints = cv2.drawKeypoints(imgRemapped, keypoints, np.array([]), (0,255,0), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
     im_with_keypoints_gray = cv2.cvtColor(im_with_keypoints, cv2.COLOR_BGR2GRAY)
     ret, corners = cv2.findCirclesGrid(im_with_keypoints, (4,11), None, flags = cv2.CALIB_CB_ASYMMETRIC_GRID)   # Find the circle grid
@@ -171,7 +172,7 @@ for i in range(0, nbOfImgs-1):
         # 3D posture
         if len(corners2) == len(objectPoints):
             retval, rvec, tvec = cv2.solvePnP(objectPoints, corners2, camera_matrix, dist_coeffs)
-        
+
         if retval:
             projectedPoints, jac = cv2.projectPoints(objectPoints, rvec, tvec, camera_matrix, dist_coeffs)  # project 3D points to image plane
             projectedAxis, jacAsix = cv2.projectPoints(axis, rvec, tvec, camera_matrix, dist_coeffs)    # project axis to image plane
@@ -186,3 +187,4 @@ for i in range(0, nbOfImgs-1):
     cv2.imshow("circlegrid", im_with_keypoints) # display
 
     cv2.waitKey(2)
+

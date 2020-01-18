@@ -31,10 +31,10 @@
 # Contact:          jiapei@longervision.com                                    #
 # URL:              http://www.longervision.cn                                 #
 # Create Date:      2017-03-13                                                 #
+# Modified Date:    2020-01-18                                                 #
 ################################################################################
 
 import sys
-sys.path.append('/usr/local/python/3.5')
 
 # Standard imports
 import os
@@ -45,14 +45,13 @@ import numpy as np
 
 
 # Load Calibrated Parameters
-calibrationFile = "calibrationFileName.xml"
-calibrationParams = cv2.FileStorage(calibrationFile, cv2.FILE_STORAGE_READ)
-camera_matrix = calibrationParams.getNode("cameraMatrix").mat()
-dist_coeffs = calibrationParams.getNode("distCoeffs").mat()
+fs = cv2.FileStorage("calibration.yml", cv2.FILE_STORAGE_READ)
+camera_matrix = fs.getNode("camera_matrix").mat()
+dist_coeffs = fs.getNode("dist_coeff").mat()
 
-r = calibrationParams.getNode("R").mat()
-new_camera_matrix = calibrationParams.getNode("newCameraMatrix").mat()
-
+r = fs.getNode("R").mat()
+new_camera_matrix = fs.getNode("newCameraMatrix").mat()
+fs.release()
 image_size = (1920, 1080)
 map1, map2 = cv2.fisheye.initUndistortRectifyMap(camera_matrix, dist_coeffs, r, new_camera_matrix, image_size, cv2.CV_16SC2)
 
