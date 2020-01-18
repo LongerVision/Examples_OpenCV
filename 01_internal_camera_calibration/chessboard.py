@@ -36,7 +36,7 @@
 
 import numpy as np
 import cv2
-import yaml
+#import yaml
 
 
 # termination criteria
@@ -70,8 +70,8 @@ while(found < 10):  # Here, 10 can be changed to whatever number you like to cho
         img = cv2.drawChessboardCorners(img, (7,6), corners2, ret)
 
         # Enable the following 2 lines if you want to save the calibration images.
-        filename = str(found) +".jpg"
-        cv2.imwrite(filename, img)
+        # filename = str(found) +".jpg"
+        # cv2.imwrite(filename, img)
 
         found += 1
 

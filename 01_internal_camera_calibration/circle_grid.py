@@ -37,7 +37,7 @@
 # Standard imports
 import numpy as np
 import cv2
-import yaml
+#import yaml
 
 
 # termination criteria
@@ -154,8 +154,8 @@ while(found < 10):  # Here, 10 can be changed to whatever number you like to cho
         im_with_keypoints = cv2.drawChessboardCorners(img, (4,11), corners2, ret)
 
         # Enable the following 2 lines if you want to save the calibration images.
-        filename = str(found) +".jpg"
-        cv2.imwrite(filename, im_with_keypoints)
+        # filename = str(found) +".jpg"
+        # cv2.imwrite(filename, im_with_keypoints)
 
         found += 1
 
