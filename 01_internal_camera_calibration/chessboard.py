@@ -51,8 +51,9 @@ objpoints = [] # 3d point in real world space
 imgpoints = [] # 2d points in image plane.
 
 cap = cv2.VideoCapture(2)
+num = 10
 found = 0
-while(found < 10):  # Here, 10 can be changed to whatever number you like to choose
+while(found < num):  # Here, 10 can be changed to whatever number you like to choose
     ret, img = cap.read() # Capture frame-by-frame
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
