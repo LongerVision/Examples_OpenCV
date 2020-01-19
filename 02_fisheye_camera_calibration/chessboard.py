@@ -39,6 +39,7 @@ import cv2
 
 # termination criteria
 criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
+criteria_fisheye = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 100, 1e-6)
 
 # prepare object points, like (0,0,0), (1,0,0), (2,0,0) ....,(6,5,0)
 objp = np.zeros((6*7,3), np.float32)
@@ -49,8 +50,9 @@ objpoints = [] # 3d point in real world space
 imgpoints = [] # 2d points in image plane.
 
 cap = cv2.VideoCapture(2)
+num = 10
 found = 0
-while(found < 10):  # Here, 10 can be changed to whatever number you like to choose
+while(found < num):  # Here, 10 can be changed to whatever number you like to choose
     ret, img = cap.read() # Capture frame-by-frame
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
@@ -81,29 +83,33 @@ while(found < 10):  # Here, 10 can be changed to whatever number you like to cho
 cap.release()
 cv2.destroyAllWindows()
 
-ret, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(objpoints, imgpoints, gray.shape[::-1], None, None)
 
+K = np.zeros((3, 3))
+D = np.zeros((4, 1))
+rvecs = [np.zeros((1, 1, 3), dtype=np.float64) for i in range(num)]
+tvecs = [np.zeros((1, 1, 3), dtype=np.float64) for i in range(num)]
+retval, _, _, _, _ = \
+    cv2.fisheye.calibrate(
+        objpoints,
+        imgpoints,
+        gray.shape[::-1],
+        K,
+        D,
+        rvecs,
+        tvecs,
+        None,
+        criteria_fisheye
+    )
+
+print(retval)
+print(K)
+print(D)
+print(rvecs)
+print(tvecs)
 
 #  Python code to write the image (OpenCV 3.2)
-fs = cv2.FileStorage('calibration.yml', cv2.FILE_STORAGE_WRITE)
-fs.write('camera_matrix', mtx)
-fs.write('dist_coeff', dist)
-fs.release()
-
-
-
-# If you want to use PyYAML to read and write yaml files,
-# try the following part
-# It's very important to transform the matrix to list.
-# data = {'camera_matrix': np.asarray(mtx).tolist(), 'dist_coeff': np.asarray(dist).tolist()}
-
-# with open("calibration.yaml", "w") as f:
-#    yaml.dump(data, f)
-
-# You can use the following 4 lines of code to load the data in file "calibration.yaml"
-# Read YAML file
-#with open(calibrationFile, 'r') as stream:
-#    dictionary = yaml.safe_load(stream)
-#camera_matrix = dictionary.get("camera_matrix")
-#dist_coeffs = dictionary.get("dist_coeff")
+# fs = cv2.FileStorage('calibration.yml', cv2.FILE_STORAGE_WRITE)
+# fs.write('camera_matrix', K)
+# fs.write('dist_coeff', D)
+# fs.release()
 
