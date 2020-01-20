@@ -41,6 +41,7 @@ import cv2
 # termination criteria
 criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
 criteria_fisheye = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 100, 1e-6)
+calibration_flags = cv2.fisheye.CALIB_RECOMPUTE_EXTRINSIC+cv2.fisheye.CALIB_CHECK_COND+cv2.fisheye.CALIB_FIX_SKEW
 
 ########################################Blob Detector##############################################
 # Setup SimpleBlobDetector parameters.
@@ -188,7 +189,7 @@ retval, _, _, _, _ = \
         D,
         rvecs,
         tvecs,
-        cv2.fisheye.CALIB_RECOMPUTE_EXTRINSIC+cv2.fisheye.CALIB_FIX_SKEW,
+        calibration_flags,
         criteria_fisheye
     )
 
