@@ -42,14 +42,20 @@ criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
 criteria_fisheye = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 100, 1e-6)
 
 # prepare object points, like (0,0,0), (1,0,0), (2,0,0) ....,(6,5,0)
-objp = np.zeros((6*7,3), np.float32)
-objp[:,:2] = np.mgrid[0:7,0:6].T.reshape(-1,2)
+objp = np.zeros((1,6*7,3), np.float32)
+objp[0,:,:2] = np.mgrid[0:7,0:6].T.reshape(-1,2)
 
 # Arrays to store object points and image points from all the images.
 objpoints = [] # 3d point in real world space
 imgpoints = [] # 2d points in image plane.
 
 cap = cv2.VideoCapture(2)
+#initialize the jevois cam. See below - don't change these as it capture videos without any process
+cap.set(3,640) #width
+cap.set(4,480) #height
+cap.set(5,15) #fps
+s,img = cap.read()
+
 num = 10
 found = 0
 while(found < num):  # Here, 10 can be changed to whatever number you like to choose
@@ -97,19 +103,17 @@ retval, _, _, _, _ = \
         D,
         rvecs,
         tvecs,
-        None,
+        cv2.fisheye.CALIB_RECOMPUTE_EXTRINSIC+cv2.fisheye.CALIB_FIX_SKEW,
         criteria_fisheye
     )
 
 print(retval)
 print(K)
 print(D)
-print(rvecs)
-print(tvecs)
 
 #  Python code to write the image (OpenCV 3.2)
-# fs = cv2.FileStorage('calibration.yml', cv2.FILE_STORAGE_WRITE)
-# fs.write('camera_matrix', K)
-# fs.write('dist_coeff', D)
-# fs.release()
+fs = cv2.FileStorage('calibration.yml', cv2.FILE_STORAGE_WRITE)
+fs.write('camera_matrix', K)
+fs.write('dist_coeff', D)
+fs.release()
 

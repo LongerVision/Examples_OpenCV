@@ -77,51 +77,51 @@ blobDetector = cv2.SimpleBlobDetector_create(blobParams)
 # And, the distance between every two neighbour blob circle centers is 72 centimetres
 # In fact, any number can be used to replace 72.
 # Namely, the real size of the circle is pointless while calculating camera calibration parameters.
-objp = np.zeros((44, 3), np.float32)
-objp[0]  = (0  , 0  , 0)
-objp[1]  = (0  , 72 , 0)
-objp[2]  = (0  , 144, 0)
-objp[3]  = (0  , 216, 0)
-objp[4]  = (36 , 36 , 0)
-objp[5]  = (36 , 108, 0)
-objp[6]  = (36 , 180, 0)
-objp[7]  = (36 , 252, 0)
-objp[8]  = (72 , 0  , 0)
-objp[9]  = (72 , 72 , 0)
-objp[10] = (72 , 144, 0)
-objp[11] = (72 , 216, 0)
-objp[12] = (108, 36,  0)
-objp[13] = (108, 108, 0)
-objp[14] = (108, 180, 0)
-objp[15] = (108, 252, 0)
-objp[16] = (144, 0  , 0)
-objp[17] = (144, 72 , 0)
-objp[18] = (144, 144, 0)
-objp[19] = (144, 216, 0)
-objp[20] = (180, 36 , 0)
-objp[21] = (180, 108, 0)
-objp[22] = (180, 180, 0)
-objp[23] = (180, 252, 0)
-objp[24] = (216, 0  , 0)
-objp[25] = (216, 72 , 0)
-objp[26] = (216, 144, 0)
-objp[27] = (216, 216, 0)
-objp[28] = (252, 36 , 0)
-objp[29] = (252, 108, 0)
-objp[30] = (252, 180, 0)
-objp[31] = (252, 252, 0)
-objp[32] = (288, 0  , 0)
-objp[33] = (288, 72 , 0)
-objp[34] = (288, 144, 0)
-objp[35] = (288, 216, 0)
-objp[36] = (324, 36 , 0)
-objp[37] = (324, 108, 0)
-objp[38] = (324, 180, 0)
-objp[39] = (324, 252, 0)
-objp[40] = (360, 0  , 0)
-objp[41] = (360, 72 , 0)
-objp[42] = (360, 144, 0)
-objp[43] = (360, 216, 0)
+objp = np.zeros((1, 44, 3), np.float32)
+objp[0][0]  = (0  , 0  , 0)
+objp[0][1]  = (0  , 72 , 0)
+objp[0][2]  = (0  , 144, 0)
+objp[0][3]  = (0  , 216, 0)
+objp[0][4]  = (36 , 36 , 0)
+objp[0][5]  = (36 , 108, 0)
+objp[0][6]  = (36 , 180, 0)
+objp[0][7]  = (36 , 252, 0)
+objp[0][8]  = (72 , 0  , 0)
+objp[0][9]  = (72 , 72 , 0)
+objp[0][10] = (72 , 144, 0)
+objp[0][11] = (72 , 216, 0)
+objp[0][12] = (108, 36,  0)
+objp[0][13] = (108, 108, 0)
+objp[0][14] = (108, 180, 0)
+objp[0][15] = (108, 252, 0)
+objp[0][16] = (144, 0  , 0)
+objp[0][17] = (144, 72 , 0)
+objp[0][18] = (144, 144, 0)
+objp[0][19] = (144, 216, 0)
+objp[0][20] = (180, 36 , 0)
+objp[0][21] = (180, 108, 0)
+objp[0][22] = (180, 180, 0)
+objp[0][23] = (180, 252, 0)
+objp[0][24] = (216, 0  , 0)
+objp[0][25] = (216, 72 , 0)
+objp[0][26] = (216, 144, 0)
+objp[0][27] = (216, 216, 0)
+objp[0][28] = (252, 36 , 0)
+objp[0][29] = (252, 108, 0)
+objp[0][30] = (252, 180, 0)
+objp[0][31] = (252, 252, 0)
+objp[0][32] = (288, 0  , 0)
+objp[0][33] = (288, 72 , 0)
+objp[0][34] = (288, 144, 0)
+objp[0][35] = (288, 216, 0)
+objp[0][36] = (324, 36 , 0)
+objp[0][37] = (324, 108, 0)
+objp[0][38] = (324, 180, 0)
+objp[0][39] = (324, 252, 0)
+objp[0][40] = (360, 0  , 0)
+objp[0][41] = (360, 72 , 0)
+objp[0][42] = (360, 144, 0)
+objp[0][43] = (360, 216, 0)
 ###################################################################################################
 
 
@@ -131,6 +131,12 @@ imgpoints = [] # 2d points in image plane.
 
 
 cap = cv2.VideoCapture(2)
+#initialize the jevois cam. See below - don't change these as it capture videos without any process
+cap.set(3,640) #width
+cap.set(4,480) #height
+cap.set(5,15) #fps
+s,img = cap.read()
+
 num = 10
 found = 0
 while(found < num):  # Here, 10 can be changed to whatever number you like to choose
@@ -182,20 +188,16 @@ retval, _, _, _, _ = \
         D,
         rvecs,
         tvecs,
-        None,
+        cv2.fisheye.CALIB_RECOMPUTE_EXTRINSIC+cv2.fisheye.CALIB_FIX_SKEW,
         criteria_fisheye
     )
 
 print(retval)
 print(K)
 print(D)
-print(rvecs)
-print(tvecs)
-
 
 #  Python code to write the image (OpenCV 3.2)
-# fs = cv2.FileStorage('calibration.yml', cv2.FILE_STORAGE_WRITE)
-# fs.write('camera_matrix', mtx)
-# fs.write('dist_coeff', dist)
-# fs.release()
-
+fs = cv2.FileStorage('calibration.yml', cv2.FILE_STORAGE_WRITE)
+fs.write('camera_matrix', K)
+fs.write('dist_coeff', D)
+fs.release()
