@@ -54,6 +54,7 @@ s,img = cap.read()
 count = 0
 while(True):
     ret, frame = cap.read() # Capture frame-by-frame
+    frame = cv2.flip(frame, 1)
 
     if ret == True:
         filename = "img" + str(count).zfill(3) +".jpg"

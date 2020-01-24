@@ -54,13 +54,13 @@ map1, map2 = cv2.fisheye.initUndistortRectifyMap(camera_matrix, dist_coeffs, np.
 
 
 
-aruco_dict = aruco.Dictionary_get( aruco.DICT_6X6_1000 )
-markerLength = 2000   # Here, our measurement unit is millimeters.
+aruco_dict = aruco.Dictionary_get( aruco.DICT_4X4_1000 )
+markerLength = 100   # Here, our measurement unit is millimeters.
 arucoParams = aruco.DetectorParameters_create()
 
 
 
-imgDir = "imgSequence/marker_66"  # Specify the image directory
+imgDir = "imgSequence/4x4_1000-0"  # Specify the image directory
 imgFileNames = [os.path.join(imgDir, fn) for fn in next(os.walk(imgDir))[2]]
 nbOfImgs = len(imgFileNames)
 
@@ -76,7 +76,7 @@ for i in range(0, nbOfImgs):
     
     corners, ids, rejectedImgPoints = aruco.detectMarkers(imgRemapped_gray, aruco_dict, parameters=arucoParams) # Detect aruco
     if ids != None: # if aruco marker detected
-        rvec, tvec = aruco.estimatePoseSingleMarkers(corners, markerLength, camera_matrix, dist_coeffs) # posture estimation from a single marker
+        rvec, tvec, trash = aruco.estimatePoseSingleMarkers(corners, markerLength, camera_matrix, dist_coeffs) # posture estimation from a single marker
         imgWithAruco = aruco.drawDetectedMarkers(imgRemapped, corners, ids, (0,255,0))
         imgWithAruco = aruco.drawAxis(imgWithAruco, camera_matrix, dist_coeffs, rvec, tvec, 100)    # axis length 100 can be changed according to your requirement
         filename = "calibrated" + str(count).zfill(3) +".jpg"
