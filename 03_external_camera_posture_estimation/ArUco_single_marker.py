@@ -54,21 +54,22 @@ map1, map2 = cv2.fisheye.initUndistortRectifyMap(camera_matrix, dist_coeffs, np.
 
 
 
-aruco_dict = aruco.Dictionary_get( aruco.DICT_4X4_1000 )
-markerLength = 100   # Here, our measurement unit is millimeters.
+aruco_dict = aruco.Dictionary_get( aruco.DICT_6X6_1000 )
+markerLength = 250   # Here, our measurement unit is millimeters.
 arucoParams = aruco.DetectorParameters_create()
 
 
 
-imgDir = "imgSequence/4x4_1000-0"  # Specify the image directory
+imgDir = "imgSequence/6x6_1000-0"  # Specify the image directory
 imgFileNames = [os.path.join(imgDir, fn) for fn in next(os.walk(imgDir))[2]]
 nbOfImgs = len(imgFileNames)
 
 count = 0
 for i in range(0, nbOfImgs):
     img = cv2.imread(imgFileNames[i], cv2.IMREAD_COLOR)
-    filename = "original" + str(i).zfill(3) +".jpg"
-    cv2.imwrite(filename, img)
+    # Enable the following 2 lines to save the original images.
+    # filename = "original" + str(i).zfill(3) +".jpg"
+    # cv2.imwrite(filename, img)
     imgRemapped = cv2.remap(img, map1, map2, cv2.INTER_LINEAR, cv2.BORDER_CONSTANT) # for fisheye remapping
     imgRemapped_gray = cv2.cvtColor(imgRemapped, cv2.COLOR_BGR2GRAY)    # aruco.detectMarkers() requires gray image
     filename = "remappedgray" + str(i).zfill(3) +".jpg"
@@ -78,7 +79,7 @@ for i in range(0, nbOfImgs):
     if ids != None: # if aruco marker detected
         rvec, tvec, trash = aruco.estimatePoseSingleMarkers(corners, markerLength, camera_matrix, dist_coeffs) # posture estimation from a single marker
         imgWithAruco = aruco.drawDetectedMarkers(imgRemapped, corners, ids, (0,255,0))
-        imgWithAruco = aruco.drawAxis(imgWithAruco, camera_matrix, dist_coeffs, rvec, tvec, 100)    # axis length 100 can be changed according to your requirement
+        imgWithAruco = aruco.drawAxis(imgWithAruco, camera_matrix, dist_coeffs, rvec, tvec, 200)    # axis length 100 can be changed according to your requirement
         filename = "calibrated" + str(count).zfill(3) +".jpg"
         cv2.imwrite(filename, imgWithAruco)
         count += 1
