@@ -43,7 +43,6 @@ from cv2 import aruco
 import numpy as np
 
 
-
 # Load Calibrated Parameters
 fs = cv2.FileStorage("calibration.yml", cv2.FILE_STORAGE_READ)
 camera_matrix = fs.getNode("camera_matrix").mat()

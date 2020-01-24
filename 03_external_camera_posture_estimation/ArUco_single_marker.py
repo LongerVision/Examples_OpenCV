@@ -48,39 +48,45 @@ import numpy as np
 fs = cv2.FileStorage("calibration.yml", cv2.FILE_STORAGE_READ)
 camera_matrix = fs.getNode("camera_matrix").mat()
 dist_coeffs = fs.getNode("dist_coeff").mat()
-
-r = fs.getNode("R").mat()
-new_camera_matrix = fs.getNode("newCameraMatrix").mat()
 fs.release()
-image_size = (1920, 1080)
-map1, map2 = cv2.fisheye.initUndistortRectifyMap(camera_matrix, dist_coeffs, r, new_camera_matrix, image_size, cv2.CV_16SC2)
+image_size = (640, 480)
+map1, map2 = cv2.fisheye.initUndistortRectifyMap(camera_matrix, dist_coeffs, np.eye(3), camera_matrix, image_size, cv2.CV_16SC2)
 
 
 
 aruco_dict = aruco.Dictionary_get( aruco.DICT_6X6_1000 )
-markerLength = 20   # Here, our measurement unit is centimetre.
+markerLength = 2000   # Here, our measurement unit is millimeters.
 arucoParams = aruco.DetectorParameters_create()
 
 
 
-imgDir = "imgSequence"  # Specify the image directory
+imgDir = "imgSequence/marker_66"  # Specify the image directory
 imgFileNames = [os.path.join(imgDir, fn) for fn in next(os.walk(imgDir))[2]]
 nbOfImgs = len(imgFileNames)
 
+count = 0
 for i in range(0, nbOfImgs):
     img = cv2.imread(imgFileNames[i], cv2.IMREAD_COLOR)
+    filename = "original" + str(i).zfill(3) +".jpg"
+    cv2.imwrite(filename, img)
     imgRemapped = cv2.remap(img, map1, map2, cv2.INTER_LINEAR, cv2.BORDER_CONSTANT) # for fisheye remapping
     imgRemapped_gray = cv2.cvtColor(imgRemapped, cv2.COLOR_BGR2GRAY)    # aruco.detectMarkers() requires gray image
+    filename = "remappedgray" + str(i).zfill(3) +".jpg"
+    cv2.imwrite(filename, imgRemapped_gray)
+    
     corners, ids, rejectedImgPoints = aruco.detectMarkers(imgRemapped_gray, aruco_dict, parameters=arucoParams) # Detect aruco
     if ids != None: # if aruco marker detected
         rvec, tvec = aruco.estimatePoseSingleMarkers(corners, markerLength, camera_matrix, dist_coeffs) # posture estimation from a single marker
         imgWithAruco = aruco.drawDetectedMarkers(imgRemapped, corners, ids, (0,255,0))
         imgWithAruco = aruco.drawAxis(imgWithAruco, camera_matrix, dist_coeffs, rvec, tvec, 100)    # axis length 100 can be changed according to your requirement
+        filename = "calibrated" + str(count).zfill(3) +".jpg"
+        cv2.imwrite(filename, imgWithAruco)
+        count += 1
     else:   # if aruco marker is NOT detected
         imgWithAruco = imgRemapped  # assign imRemapped_color to imgWithAruco directly
 
     cv2.imshow("aruco", imgWithAruco)   # display
 
-    if cv2.waitKey(2) & 0xFF == ord('q'):   # if 'q' is pressed, quit.
+    if cv2.waitKey(10) & 0xFF == ord('q'):   # if 'q' is pressed, quit.
         break
 

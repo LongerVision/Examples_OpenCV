@@ -43,62 +43,27 @@ from cv2 import aruco
 import numpy as np
 
 
-
-# Load Calibrated Parameters
-fs = cv2.FileStorage('calibration.yml', cv2.FILE_STORAGE_READ)
-camera_matrix = fs.getNode('camera_matrix').mat()
-dist_coeffs = fs.getNode("dist_coeff").mat()
-fs.release()
-image_size = (640, 480)
-map1, map2 = cv2.fisheye.initUndistortRectifyMap(camera_matrix, dist_coeffs, np.eye(3), camera_matrix, image_size, cv2.CV_16SC2)
+cap = cv2.VideoCapture(2)
+#initialize the jevois cam. See below - don't change these as it capture videos without any process
+cap.set(3,640) #width
+cap.set(4,480) #height
+cap.set(5,15) #fps
+s,img = cap.read()
 
 
-
-aruco_dict = aruco.getPredefinedDictionary( aruco.DICT_6X6_1000 )
-markerLength = 40   # Here, our measurement unit is milimeter.
-markerSeparation = 8   # Here, our measurement unit is milimeter.
-board = aruco.GridBoard_create(5, 7, markerLength, markerSeparation, aruco_dict)
-arucoParams = aruco.DetectorParameters_create()
-
-
-videoFile = "aruco_board_66.mp4"
-cap = cv2.VideoCapture(videoFile)
-
-idx = 0
 count = 0
 while(True):
     ret, frame = cap.read() # Capture frame-by-frame
 
     if ret == True:
-        frame_remapped = cv2.remap(frame, map1, map2, cv2.INTER_LINEAR, cv2.BORDER_CONSTANT)     # for fisheye remapping
-        filename = "remapped" + str(idx).zfill(3) +".jpg"
-        cv2.imwrite(filename, frame_remapped)
-        idx += 1
-        frame_remapped_gray = cv2.cvtColor(frame_remapped, cv2.COLOR_BGR2GRAY)  # aruco.detectMarkers() requires gray image
-
-        corners, ids, rejectedImgPoints = aruco.detectMarkers(frame_remapped_gray, aruco_dict, parameters=arucoParams)  # First, detect markers
-        aruco.refineDetectedMarkers(frame_remapped_gray, board, corners, ids, rejectedImgPoints)
-
-        if ids != None: # if there is at least one marker detected
-            im_with_aruco_board = aruco.drawDetectedMarkers(frame_remapped, corners, ids, (0,255,0))
-            retval, rvec, tvec = aruco.estimatePoseBoard(corners, ids, board, camera_matrix, dist_coeffs)  # posture estimation from a aruco board
-            if retval != 0:
-                im_with_aruco_board = aruco.drawAxis(im_with_aruco_board, camera_matrix, dist_coeffs, rvec, tvec, 100)  # axis length 100 can be changed according to your requirement
-                # Enable the following 2 lines if you want to save the calibration images.
-                filename = "calibrated" + str(count).zfill(3) +".jpg"
-                cv2.imwrite(filename, im_with_aruco_board)
-
-                count += 1
-        else:
-            im_with_aruco_board = frame_remapped
-
-        cv2.imshow("arucoboard", im_with_aruco_board)
-
-        if cv2.waitKey(2) & 0xFF == ord('q'):
+        filename = "img" + str(count).zfill(3) +".jpg"
+        cv2.imwrite(filename, frame)
+        count += 1
+        
+    cv2.imshow("Image Capturing", frame)
+        
+    if cv2.waitKey(2) & 0xFF == ord('q'):
             break
-    else:
-        break
 
 
 cap.release()   # When everything done, release the capture
-# cv2.destroyAllWindows()

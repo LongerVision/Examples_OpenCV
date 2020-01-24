@@ -51,9 +51,7 @@ dist_coeffs = fs.getNode("dist_coeff").mat()
 r = fs.getNode("R").mat()
 new_camera_matrix = fs.getNode("newCameraMatrix").mat()
 fs.release()
-print(camera_matrix)
-print(dist_coeffs)
-image_size = (1920, 1080)
+image_size = (640, 480)
 map1, map2 = cv2.fisheye.initUndistortRectifyMap(camera_matrix, dist_coeffs, r, new_camera_matrix, image_size, cv2.CV_16SC2)
 
 
@@ -147,10 +145,11 @@ criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
 
 
 
-imgDir = "imgSequence"  # Specify the image directory
+imgDir = "images"  # Specify the image directory
 imgFileNames = [os.path.join(imgDir, fn) for fn in next(os.walk(imgDir))[2]]
 nbOfImgs = len(imgFileNames)
 
+count = 0
 for i in range(0, nbOfImgs-1):
     img = cv2.imread(imgFileNames[i], cv2.IMREAD_COLOR)
     imgRemapped = cv2.remap(img, map1, map2, cv2.INTER_LINEAR, cv2.BORDER_CONSTANT) # for fisheye remapping
@@ -185,6 +184,14 @@ for i in range(0, nbOfImgs-1):
             im_with_keypoints = cv2.line(im_with_keypoints, origin, tuple(projectedAxis[2].ravel()), (0,0,255), 2)
 
     cv2.imshow("circlegrid", im_with_keypoints) # display
+    # Enable the following 2 lines if you want to save the calibration images.
+    filename = "a" + str(count).zfill(3) +".jpg"
+    cv2.imwrite(filename, im_with_keypoints)
+    
+    count += 1
 
-    cv2.waitKey(2)
+    if cv2.waitKey(2) & 0xFF == ord('q'):
+        break
 
+
+cap.release()   # When everything done, release the capture
