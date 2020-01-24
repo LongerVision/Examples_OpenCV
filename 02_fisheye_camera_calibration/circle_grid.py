@@ -180,7 +180,7 @@ K = np.zeros((3, 3))
 D = np.zeros((4, 1))
 rvecs = [np.zeros((1, 1, 3), dtype=np.float64) for i in range(num)]
 tvecs = [np.zeros((1, 1, 3), dtype=np.float64) for i in range(num)]
-retval, _, _, _, _ = \
+retval, K, D, rvecs, tvecs = \
     cv2.fisheye.calibrate(
         objpoints,
         imgpoints,
