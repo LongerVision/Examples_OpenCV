@@ -72,15 +72,15 @@ for i in range(0, nbOfImgs):
     # cv2.imwrite(filename, img)
     imgRemapped = cv2.remap(img, map1, map2, cv2.INTER_LINEAR, cv2.BORDER_CONSTANT) # for fisheye remapping
     imgRemapped_gray = cv2.cvtColor(imgRemapped, cv2.COLOR_BGR2GRAY)    # aruco.detectMarkers() requires gray image
-    filename = "remappedgray" + str(i).zfill(3) +".jpg"
+    filename = "remappedgray" + str(i).zfill(3) + ".jpg"
     cv2.imwrite(filename, imgRemapped_gray)
     
     corners, ids, rejectedImgPoints = aruco.detectMarkers(imgRemapped_gray, aruco_dict, parameters=arucoParams) # Detect aruco
     if ids != None: # if aruco marker detected
         rvec, tvec, trash = aruco.estimatePoseSingleMarkers(corners, markerLength, camera_matrix, dist_coeffs) # posture estimation from a single marker
         imgWithAruco = aruco.drawDetectedMarkers(imgRemapped, corners, ids, (0,255,0))
-        imgWithAruco = aruco.drawAxis(imgWithAruco, camera_matrix, dist_coeffs, rvec, tvec, 200)    # axis length 100 can be changed according to your requirement
-        filename = "calibrated" + str(count).zfill(3) +".jpg"
+        imgWithAruco = aruco.drawAxis(imgWithAruco, camera_matrix, dist_coeffs, rvec, tvec, 100)    # axis length 100 can be changed according to your requirement
+        filename = "pose" + str(count).zfill(3) + "_" + str(i).zfill(3) + ".jpg"
         cv2.imwrite(filename, imgWithAruco)
         count += 1
     else:   # if aruco marker is NOT detected
