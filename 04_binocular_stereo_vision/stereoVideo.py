@@ -40,8 +40,6 @@ import numpy as np
 import cv2
 
 
-REMAP_INTERPOLATION = cv2.INTER_LINEAR
-
 DEPTH_VISUALIZATION_SCALE = 2048
 
 if len(sys.argv) != 2:
@@ -114,8 +112,8 @@ while(True):
         print("Right camera has different size than the calibration data")
         break
 
-    fixedLeft = cv2.remap(leftFrame, leftMapX, leftMapY, REMAP_INTERPOLATION)
-    fixedRight = cv2.remap(rightFrame, rightMapX, rightMapY, REMAP_INTERPOLATION)
+    fixedLeft = cv2.remap(leftFrame, leftMapX, leftMapY, cv2.INTER_LINEAR)
+    fixedRight = cv2.remap(rightFrame, rightMapX, rightMapY, cv2.INTER_LINEAR)
 
     grayLeft = cv2.cvtColor(fixedLeft, cv2.COLOR_BGR2GRAY)
     grayRight = cv2.cvtColor(fixedRight, cv2.COLOR_BGR2GRAY)
